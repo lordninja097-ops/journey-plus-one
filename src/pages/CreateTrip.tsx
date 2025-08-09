@@ -29,6 +29,10 @@ const CreateTrip = () => {
         <CardContent className="p-6">
           <form onSubmit={onSubmit} className="grid gap-4 sm:grid-cols-2">
             <div className="sm:col-span-2 grid gap-2">
+              <label className="text-sm">Your name</label>
+              <Input name="name" placeholder="e.g., Alex Smith" required aria-label="Your name" />
+            </div>
+            <div className="sm:col-span-2 grid gap-2">
               <label className="text-sm">Destination</label>
               <Input name="destination" placeholder="e.g., Japan" required aria-label="Destination" />
             </div>

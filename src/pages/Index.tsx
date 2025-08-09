@@ -63,8 +63,8 @@ const Index = () => {
       </section>
 
       <section className="container mx-auto py-16">
-        <h2 className="text-2xl font-bold">Popular companions</h2>
-        <p className="text-muted-foreground mt-1">A few friendly travelers looking for buddies now</p>
+        <h2 className="text-2xl font-bold">Nearest companions</h2>
+        <p className="text-muted-foreground mt-1">Travelers close to your location looking for buddies</p>
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {[
             { name: "Ava", destination: "Japan", style: "Food & Culture", dates: "Apr 10–20" },
