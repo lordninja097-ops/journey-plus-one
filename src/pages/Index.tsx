@@ -1,17 +1,43 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
+import { useAuth } from "@/hooks/useAuth";
+import { tripService } from "@/services/tripService";
+import { Trip } from "@/types/trip";
 import { ChatModal } from "@/components/chat/ChatModal";
 import { MessageCircle } from "lucide-react";
-import { useState } from "react";
 import heroImage from "@/assets/hero-travel.jpg";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [chatOpen, setChatOpen] = useState(false);
-  const [selectedCompanion, setSelectedCompanion] = useState<string>("");
+  const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
+  const [nearbyTrips, setNearbyTrips] = useState<Trip[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadNearbyTrips();
+  }, [user]);
+
+  const loadNearbyTrips = async () => {
+    try {
+      setLoading(true);
+      const allTrips = await tripService.getTrips();
+      // Filter out current user's trips and get first 3
+      const otherTrips = allTrips
+        .filter(trip => trip.userId !== user?.uid)
+        .slice(0, 3);
+      setNearbyTrips(otherTrips);
+    } catch (error) {
+      console.error("Error loading nearby trips:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const onSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -24,10 +50,17 @@ const Index = () => {
     navigate(`/explore?${params}`);
   };
 
-  const openChat = (companionName: string) => {
-    setSelectedCompanion(companionName);
+  const openChat = (trip: Trip) => {
+    setSelectedTrip(trip);
     setChatOpen(true);
   };
+
+  const formatDateRange = (startDate: string, endDate: string) => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}–${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+  };
+
   return (
     <main>
       <Helmet>
@@ -74,28 +107,33 @@ const Index = () => {
       <section className="container mx-auto py-16">
         <h2 className="text-2xl font-bold">Nearest companions</h2>
         <p className="text-muted-foreground mt-1">Travelers close to your location looking for buddies</p>
+        
+        {loading ? (
+          <div className="mt-8 flex justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : (
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {[
-            { name: "Ava", destination: "Japan", style: "Food & Culture", dates: "Apr 10–20" },
-            { name: "Leo", destination: "Peru", style: "Hiking", dates: "May 3–12" },
-            { name: "Maya", destination: "Portugal", style: "Surf & Cities", dates: "Jun 1–10" },
-          ].map((c) => (
-            <Card key={c.name} className="hover:shadow-[0_10px_30px_-10px_hsl(var(--primary)_/_0.25)] transition-shadow">
+          {nearbyTrips.map((trip) => (
+            <Card key={trip.id} className="hover:shadow-[0_10px_30px_-10px_hsl(var(--primary)_/_0.25)] transition-shadow">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-semibold text-lg">{c.name}</h3>
-                    <p className="text-sm text-muted-foreground">{c.style}</p>
+                    <h3 className="font-semibold text-lg">{trip.userName}</h3>
+                    <p className="text-sm text-muted-foreground">{trip.interests}</p>
                   </div>
-                  <span className="text-sm px-2 py-1 rounded bg-secondary">{c.destination}</span>
+                  <span className="text-sm px-2 py-1 rounded bg-secondary">{trip.destination}</span>
                 </div>
-                <p className="mt-4 text-sm">Dates: {c.dates}</p>
+                <p className="mt-4 text-sm">Dates: {formatDateRange(trip.startDate, trip.endDate)}</p>
+                {trip.budget && (
+                  <p className="text-sm text-muted-foreground">Budget: {trip.budget}</p>
+                )}
                 <div className="mt-4 flex gap-2">
                   <Button variant="outline" className="flex-1" onClick={() => navigate("/explore")}>View matches</Button>
                   <Button 
                     variant="hero" 
                     size="icon"
-                    onClick={() => openChat(c.name)}
+                    onClick={() => openChat(trip)}
                     className="shrink-0"
                   >
                     <MessageCircle className="h-4 w-4" />
@@ -104,7 +142,13 @@ const Index = () => {
               </CardContent>
             </Card>
           ))}
+          {nearbyTrips.length === 0 && !loading && (
+            <p className="text-muted-foreground sm:col-span-2 lg:col-span-3 text-center py-8">
+              No trips available yet. Be the first to create one!
+            </p>
+          )}
         </div>
+        )}
       </section>
 
       <section className="container mx-auto py-16">
@@ -130,7 +174,7 @@ const Index = () => {
       <ChatModal 
         isOpen={chatOpen}
         onClose={() => setChatOpen(false)}
-        companionName={selectedCompanion}
+        trip={selectedTrip}
       />
     </main>
   );

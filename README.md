@@ -1,5 +1,57 @@
 # Welcome to your Lovable project
 
+## Firebase Setup Instructions
+
+To enable real trip creation and chat functionality, you need to set up Firebase:
+
+1. **Create a Firebase Project**
+   - Go to [Firebase Console](https://console.firebase.google.com/)
+   - Click "Create a project"
+   - Follow the setup wizard
+
+2. **Enable Authentication**
+   - In your Firebase project, go to Authentication
+   - Click "Get started"
+   - Enable "Anonymous" sign-in method
+
+3. **Set up Firestore Database**
+   - Go to Firestore Database
+   - Click "Create database"
+   - Choose "Start in test mode" for development
+   - Select a location for your database
+
+4. **Get your Firebase Configuration**
+   - Go to Project Settings (gear icon)
+   - Scroll down to "Your apps" section
+   - Click "Add app" and select Web
+   - Register your app and copy the config object
+
+5. **Update Firebase Configuration**
+   - Open `src/lib/firebase.ts`
+   - Replace the placeholder config with your actual Firebase config:
+   ```typescript
+   const firebaseConfig = {
+     apiKey: "your-actual-api-key",
+     authDomain: "your-project.firebaseapp.com",
+     projectId: "your-actual-project-id",
+     storageBucket: "your-project.appspot.com",
+     messagingSenderId: "your-sender-id",
+     appId: "your-app-id"
+   };
+   ```
+
+6. **Set up Firestore Security Rules** (Optional for production)
+   - In Firestore Database, go to Rules tab
+   - Update rules to secure your data appropriately
+
+## Features
+
+- **Real Trip Creation**: Users can create actual trips stored in Firebase
+- **Trip Discovery**: Browse and filter real trips from other users
+- **Real-time Chat**: Chat with trip creators using Firebase real-time messaging
+- **Anonymous Authentication**: Users are automatically signed in anonymously
+- **Responsive Design**: Works on all device sizes
+
 ## Project info
 
 **URL**: https://lovable.dev/projects/f8dc81dd-9ac6-4373-948c-fea864149826

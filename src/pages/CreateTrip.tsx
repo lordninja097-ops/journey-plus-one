@@ -1,17 +1,68 @@
 import { Helmet } from "react-helmet-async";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { tripService } from "@/services/tripService";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const CreateTrip = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    toast({ title: "Trip published (mock)", description: "Your trip is visible to potential companions." });
-    (e.currentTarget as HTMLFormElement).reset();
+    
+    if (!user) {
+      toast({ 
+        title: "Authentication required", 
+        description: "Please sign in to create a trip.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      const formData = new FormData(e.currentTarget);
+      
+      const tripData = {
+        userId: user.uid,
+        userName: formData.get("name") as string,
+        userEmail: user.email || "",
+        destination: formData.get("destination") as string,
+        startDate: formData.get("start") as string,
+        endDate: formData.get("end") as string,
+        budget: formData.get("budget") as string,
+        interests: formData.get("interests") as string,
+        notes: formData.get("notes") as string
+      };
+
+      const tripId = await tripService.createTrip(tripData);
+      
+      toast({ 
+        title: "Trip created successfully!", 
+        description: "Your trip is now visible to potential companions." 
+      });
+      
+      (e.currentTarget as HTMLFormElement).reset();
+      navigate("/explore");
+    } catch (error) {
+      console.error("Error creating trip:", error);
+      toast({ 
+        title: "Error creating trip", 
+        description: "Please try again later.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -57,7 +108,9 @@ const CreateTrip = () => {
               <Textarea name="notes" placeholder="Tell companions about your plan" aria-label="Notes" />
             </div>
             <div className="sm:col-span-2">
-              <Button type="submit" variant="hero">Publish trip</Button>
+              <Button type="submit" variant="hero" disabled={loading}>
+                {loading ? "Publishing..." : "Publish trip"}
+              </Button>
             </div>
           </form>
         </CardContent>
