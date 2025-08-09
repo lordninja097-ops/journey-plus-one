@@ -3,10 +3,15 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
+import { ChatModal } from "@/components/chat/ChatModal";
+import { MessageCircle } from "lucide-react";
+import { useState } from "react";
 import heroImage from "@/assets/hero-travel.jpg";
 
 const Index = () => {
   const navigate = useNavigate();
+  const [chatOpen, setChatOpen] = useState(false);
+  const [selectedCompanion, setSelectedCompanion] = useState<string>("");
 
   const onSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -19,6 +24,10 @@ const Index = () => {
     navigate(`/explore?${params}`);
   };
 
+  const openChat = (companionName: string) => {
+    setSelectedCompanion(companionName);
+    setChatOpen(true);
+  };
   return (
     <main>
       <Helmet>
@@ -81,7 +90,17 @@ const Index = () => {
                   <span className="text-sm px-2 py-1 rounded bg-secondary">{c.destination}</span>
                 </div>
                 <p className="mt-4 text-sm">Dates: {c.dates}</p>
-                <Button variant="outline" className="mt-4" onClick={() => navigate("/explore")}>View matches</Button>
+                <div className="mt-4 flex gap-2">
+                  <Button variant="outline" className="flex-1" onClick={() => navigate("/explore")}>View matches</Button>
+                  <Button 
+                    variant="hero" 
+                    size="icon"
+                    onClick={() => openChat(c.name)}
+                    className="shrink-0"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
@@ -107,6 +126,12 @@ const Index = () => {
           <Button variant="hero" onClick={() => navigate("/create-trip")}>Create your trip</Button>
         </div>
       </section>
+      
+      <ChatModal 
+        isOpen={chatOpen}
+        onClose={() => setChatOpen(false)}
+        companionName={selectedCompanion}
+      />
     </main>
   );
 };

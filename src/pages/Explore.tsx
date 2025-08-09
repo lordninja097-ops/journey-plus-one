@@ -4,6 +4,8 @@ import { Helmet } from "react-helmet-async";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ChatModal } from "@/components/chat/ChatModal";
+import { MessageCircle } from "lucide-react";
 
 interface Companion {
   name: string;
@@ -27,6 +29,8 @@ const Explore = () => {
   const [destination, setDestination] = useState(q.get("q") || "");
   const [style, setStyle] = useState(q.get("style") || "");
   const [month, setMonth] = useState(q.get("month") || "");
+  const [chatOpen, setChatOpen] = useState(false);
+  const [selectedCompanion, setSelectedCompanion] = useState<string>("");
 
   const results = useMemo(() => {
     return MOCK.filter((c) =>
@@ -36,6 +40,10 @@ const Explore = () => {
     );
   }, [destination, style, month]);
 
+  const openChat = (companionName: string) => {
+    setSelectedCompanion(companionName);
+    setChatOpen(true);
+  };
   return (
     <main className="container mx-auto py-10">
       <Helmet>
@@ -71,7 +79,17 @@ const Explore = () => {
                 <span className="text-muted-foreground">Budget</span>
                 <span>{c.budget}</span>
               </div>
-              <Button variant="outline" className="mt-4">View profile</Button>
+              <div className="mt-4 flex gap-2">
+                <Button variant="outline" className="flex-1">View profile</Button>
+                <Button 
+                  variant="hero" 
+                  size="icon"
+                  onClick={() => openChat(c.name)}
+                  className="shrink-0"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ))}
@@ -79,6 +97,12 @@ const Explore = () => {
           <p className="text-muted-foreground">No matches yet. Try broadening your filters.</p>
         )}
       </div>
+      
+      <ChatModal 
+        isOpen={chatOpen}
+        onClose={() => setChatOpen(false)}
+        companionName={selectedCompanion}
+      />
     </main>
   );
 };
